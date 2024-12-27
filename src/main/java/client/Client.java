@@ -65,7 +65,8 @@ public class Client implements Runnable {
                     new Header.V0(request.header().correlationId()),
                     handleApiVersionsRequest(apiVersionRequest)
             );
-            default -> throw new IllegalStateException("Unexpected value: " + request.body());
+
+            default -> null;
         };
     }
 
