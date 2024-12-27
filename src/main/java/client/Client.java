@@ -30,7 +30,7 @@ public class Client implements Runnable {
     public void run() {
         try (socket) {
             while (!socket.isClosed()) {
-                this.outputStream.writeInt(5);
+                this.outputStream.writeInt(7);
             }
         } catch (Exception exception) {
             System.err.println("%s: %s".formatted(socket.getLocalSocketAddress(), exception.getMessage()));
