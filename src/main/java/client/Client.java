@@ -50,6 +50,7 @@ public class Client implements Runnable {
             final var request = mapper.receiveRequest(inputStream);
             final var correlationId = request.header().correlationId();
 
+            System.out.println(request);
             final var response = handle(request);
             if (response == null) throw new ProtocolException(ErrorCode.UNKNOWN_SERVER_ERROR, correlationId);
 
