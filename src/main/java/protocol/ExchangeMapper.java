@@ -42,7 +42,7 @@ public class ExchangeMapper {
         final var byteOutputStream = new ByteArrayOutputStream();
 
         final var temporaryOutput = new DataOutputStream(byteOutputStream);
-        response.serialize(temporaryOutput);
+        //response.serialize(temporaryOutput);
 
         System.out.println(response);
 
