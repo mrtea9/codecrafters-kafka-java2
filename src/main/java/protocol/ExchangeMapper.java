@@ -44,6 +44,8 @@ public class ExchangeMapper {
         final var temporaryOutput = new DataOutputStream(byteOutputStream);
         response.serialize(temporaryOutput);
 
+        System.out.println(response);
+
         final var bytes = byteOutputStream.toByteArray();
 
         output.writeInt(bytes.length);
