@@ -4,6 +4,8 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import message.apiversions.ApiVersionRequestV4;
 import message.apiversions.ApiVersionsResponseV4;
+import message.describetopic.DescribeTopicPartitionsRequestV0;
+import message.describetopic.DescribeTopicPartitionsResponseV0;
 import protocol.*;
 import protocol.io.DataInputStream;
 import protocol.io.DataOutputStream;
@@ -12,6 +14,9 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.UUID;
 
 @Getter
 public class Client implements Runnable {
@@ -50,7 +55,6 @@ public class Client implements Runnable {
             final var request = mapper.receiveRequest(inputStream);
             final var correlationId = request.header().correlationId();
 
-            System.out.println(request);
             final var response = handle(request);
             if (response == null) throw new ProtocolException(ErrorCode.UNKNOWN_SERVER_ERROR, correlationId);
 
@@ -65,6 +69,11 @@ public class Client implements Runnable {
             case ApiVersionRequestV4 apiVersionRequest -> new Response(
                     new Header.V0(request.header().correlationId()),
                     handleApiVersionsRequest(apiVersionRequest)
+            );
+
+            case DescribeTopicPartitionsRequestV0 describeTopicPartitionsRequest -> new Response(
+                    new Header.V1(request.header().correlationId()),
+                    handleDescribeTopicPartitionsRequest(describeTopicPartitionsRequest)
             );
 
             default -> null;
@@ -88,4 +97,26 @@ public class Client implements Runnable {
         );
     }
 
+    @SneakyThrows
+    private DescribeTopicPartitionsResponseV0 handleDescribeTopicPartitionsRequest(DescribeTopicPartitionsRequestV0 request) {
+        final var topicResponses = new ArrayList<DescribeTopicPartitionsResponseV0.Topic>();
+
+        for (final var topicRequest : request.topics()) {
+
+            topicResponses.add(new DescribeTopicPartitionsResponseV0.Topic(
+                    ErrorCode.UNKNOWN_TOPIC,
+                    topicRequest.name(),
+                    UUID.fromString("00000000-0000-0000-0000-000000000000"),
+                    false,
+                    Collections.emptyList(),
+                    0
+            ));
+        }
+
+        return new DescribeTopicPartitionsResponseV0(
+                Duration.ZERO,
+                topicResponses,
+                null
+        );
+    }
 }
