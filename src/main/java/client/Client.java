@@ -1,11 +1,12 @@
 package client;
 
 import lombok.Getter;
-import protocol.ExchangeMapper;
-import protocol.Response;
+import lombok.SneakyThrows;
+import message.apiversions.ApiVersionRequestV4;
+import protocol.*;
+import protocol.io.DataInputStream;
+import protocol.io.DataOutputStream;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
@@ -26,11 +27,12 @@ public class Client implements Runnable {
         this.outputStream = new DataOutputStream(socket.getOutputStream());
     }
 
+    @SneakyThrows
     @Override
     public void run() {
         try (socket) {
             while (!socket.isClosed()) {
-                this.outputStream.writeInt(7);
+                exchange();
             }
         } catch (Exception exception) {
             System.err.println("%s: %s".formatted(socket.getLocalSocketAddress(), exception.getMessage()));
@@ -41,11 +43,28 @@ public class Client implements Runnable {
         }
     }
 
-//    private void exchange() {
-//        try {
-//            mapper.sendResponse(outputStream, new Response(null, null));
-//
-//        }
-//    }
+    private void exchange() {
+        try {
+            final var request = mapper.receiveRequest(inputStream);
+            final var correlationId = request.header().correlationId();
+
+            final var response = handle(request);
+            if (response == null) throw new ProtocolException(ErrorCode.UNKNOWN_SERVER_ERROR, correlationId);
+
+            mapper.sendResponse(outputStream, response);
+        } catch (ProtocolException exception) {
+            mapper.sendErrorResponse(outputStream, exception.correlationId(), exception.code());
+        }
+    }
+
+    private Response handle(Request request) {
+        return switch (request.body()) {
+            case ApiVersionRequestV4 apiVersionRequestV4 -> new Response(
+                    new Header.V0(request.header().correlationId()),
+                    null
+            );
+            default -> throw new IllegalStateException("Unexpected value: " + request.body());
+        };
+    }
 
 }
