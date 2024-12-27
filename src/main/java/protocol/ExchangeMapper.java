@@ -3,6 +3,7 @@ package protocol;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import message.apiversions.ApiVersionRequestV4;
+import message.describetopic.DescribeTopicPartitionsRequestV0;
 import protocol.io.DataByteBuffer;
 import protocol.io.DataInput;
 import protocol.io.DataOutput;
@@ -23,6 +24,7 @@ public class ExchangeMapper {
 
     public ExchangeMapper() {
         deserializers.put(ApiVersionRequestV4.API, ApiVersionRequestV4::deserialize);
+        deserializers.put(DescribeTopicPartitionsRequestV0.API, DescribeTopicPartitionsRequestV0::deserialize);
     }
 
     public Request receiveRequest(DataInput input) {
