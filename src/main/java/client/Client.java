@@ -60,6 +60,7 @@ public class Client implements Runnable {
     }
 
     private Response handle(Request request) {
+        System.out.println(request);
         return switch (request.body()) {
             case ApiVersionRequestV4 apiVersionRequest -> new Response(
                     new Header.V0(request.header().correlationId()),
@@ -80,7 +81,6 @@ public class Client implements Runnable {
                 )
                 .toList();
 
-        System.out.println(keys);
 
         return new ApiVersionsResponseV4(
                 keys,
