@@ -80,6 +80,7 @@ public class Client implements Runnable {
         };
     }
 
+
     private ApiVersionsResponseV4 handleApiVersionsRequest(ApiVersionRequestV4 request) {
         final var keys = mapper.requestApis()
                 .stream()
