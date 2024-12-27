@@ -80,6 +80,8 @@ public class Client implements Runnable {
                 )
                 .toList();
 
+        System.out.println(keys);
+
         return new ApiVersionsResponseV4(
                 keys,
                 Duration.ZERO
