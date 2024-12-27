@@ -52,7 +52,6 @@ public class Client implements Runnable {
 
             final var response = handle(request);
             if (response == null) throw new ProtocolException(ErrorCode.UNKNOWN_SERVER_ERROR, correlationId);
-            System.out.println(response);
 
             mapper.sendResponse(outputStream, response);
         } catch (ProtocolException exception) {
