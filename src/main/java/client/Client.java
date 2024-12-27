@@ -3,6 +3,7 @@ package client;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import message.apiversions.ApiVersionRequestV4;
+import message.apiversions.ApiVersionsResponseV4;
 import protocol.*;
 import protocol.io.DataInputStream;
 import protocol.io.DataOutputStream;
@@ -10,6 +11,7 @@ import protocol.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
+import java.time.Duration;
 
 @Getter
 public class Client implements Runnable {
@@ -59,13 +61,28 @@ public class Client implements Runnable {
 
     private Response handle(Request request) {
         return switch (request.body()) {
-            case ApiVersionRequestV4 apiVersionRequestV4 -> new Response(
+            case ApiVersionRequestV4 apiVersionRequest -> new Response(
                     new Header.V0(request.header().correlationId()),
-                    null
-
+                    handleApiVersionsRequest(apiVersionRequest)
             );
             default -> throw new IllegalStateException("Unexpected value: " + request.body());
         };
+    }
+
+    private ApiVersionsResponseV4 handleApiVersionsRequest(ApiVersionRequestV4 request) {
+        final var keys = mapper.requestApis()
+                .stream()
+                .map((requestApi) -> new ApiVersionsResponseV4.Key(
+                        requestApi.key(),
+                        requestApi.version(),
+                        requestApi.version())
+                )
+                .toList();
+
+        return new ApiVersionsResponseV4(
+                keys,
+                Duration.ZERO
+        );
     }
 
 }
