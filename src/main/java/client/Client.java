@@ -52,6 +52,7 @@ public class Client implements Runnable {
 
             final var response = handle(request);
             if (response == null) throw new ProtocolException(ErrorCode.UNKNOWN_SERVER_ERROR, correlationId);
+            System.out.println(response);
 
             mapper.sendResponse(outputStream, response);
         } catch (ProtocolException exception) {
@@ -60,7 +61,6 @@ public class Client implements Runnable {
     }
 
     private Response handle(Request request) {
-        System.out.println(request);
         return switch (request.body()) {
             case ApiVersionRequestV4 apiVersionRequest -> new Response(
                     new Header.V0(request.header().correlationId()),
