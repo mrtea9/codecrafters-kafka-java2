@@ -1,5 +1,6 @@
 package client;
 
+import kafka.Kafka;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import message.apiversions.ApiVersionRequestV4;
@@ -21,12 +22,14 @@ import java.util.UUID;
 @Getter
 public class Client implements Runnable {
 
+    private final Kafka kafka;
     private final ExchangeMapper mapper;
     private final Socket socket;
     private final DataInputStream inputStream;
     private final DataOutputStream outputStream;
 
-    public Client(ExchangeMapper mapper, Socket socket) throws IOException {
+    public Client(Kafka kafka, ExchangeMapper mapper, Socket socket) throws IOException {
+        this.kafka = kafka;
         this.mapper = mapper;
         this.socket = socket;
 
@@ -102,13 +105,42 @@ public class Client implements Runnable {
         final var topicResponses = new ArrayList<DescribeTopicPartitionsResponseV0.Topic>();
 
         for (final var topicRequest : request.topics()) {
+            final var topicRecord = kafka.getTopic(topicRequest.name());
+
+            if (topicRecord == null) {
+                topicResponses.add(new DescribeTopicPartitionsResponseV0.Topic(
+                        ErrorCode.UNKNOWN_TOPIC,
+                        topicRequest.name(),
+                        UUID.fromString("00000000-0000-0000-0000-000000000000"),
+                        false,
+                        Collections.emptyList(),
+                        0
+                ));
+
+                continue;
+            }
+
+            final var partitionResponses = new ArrayList<DescribeTopicPartitionsResponseV0.Topic.Partition>();
+            for (final var partitionRecord : kafka.getPartitions(topicRecord.id())) {
+                partitionResponses.add(new DescribeTopicPartitionsResponseV0.Topic.Partition(
+                        ErrorCode.NONE,
+                        partitionRecord.id(),
+                        partitionRecord.leader(),
+                        partitionRecord.leaderEpoch(),
+                        partitionRecord.replicas(),
+                        partitionRecord.inSyncReplicas(),
+                        partitionRecord.addingReplicas(),
+                        Collections.emptyList(),
+                        partitionRecord.removingReplicas()
+                ));
+            }
 
             topicResponses.add(new DescribeTopicPartitionsResponseV0.Topic(
-                    ErrorCode.UNKNOWN_TOPIC,
+                    ErrorCode.NONE,
                     topicRequest.name(),
-                    UUID.fromString("00000000-0000-0000-0000-000000000000"),
+                    topicRecord.id(),
                     false,
-                    Collections.emptyList(),
+                    partitionResponses,
                     0
             ));
         }

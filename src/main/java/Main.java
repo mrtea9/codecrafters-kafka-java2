@@ -21,7 +21,7 @@ public class Main {
                 final var clientSocket = serverSocket.accept();
                 System.out.println("connected: %s".formatted(clientSocket.getRemoteSocketAddress()));
 
-                Thread.ofVirtual().start(new Client(exchangeMapper, clientSocket));
+                Thread.ofVirtual().start(new Client(kafka, exchangeMapper, clientSocket));
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
