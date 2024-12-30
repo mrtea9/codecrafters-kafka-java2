@@ -11,7 +11,6 @@ public class Main {
     public static void main(String[] args) {
         final var kafka = Kafka.load("/tmp/kraft-combined-logs/");
 
-
         final var exchangeMapper = new ExchangeMapper();
 
         System.out.println("listen: %d".formatted(PORT));
