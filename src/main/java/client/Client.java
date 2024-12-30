@@ -7,6 +7,8 @@ import message.apiversions.ApiVersionRequestV4;
 import message.apiversions.ApiVersionsResponseV4;
 import message.describetopic.DescribeTopicPartitionsRequestV0;
 import message.describetopic.DescribeTopicPartitionsResponseV0;
+import message.fetch.FetchRequestV16;
+import message.fetch.FetchResponseV16;
 import protocol.*;
 import protocol.io.DataInputStream;
 import protocol.io.DataOutputStream;
@@ -17,6 +19,7 @@ import java.net.Socket;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -78,6 +81,11 @@ public class Client implements Runnable {
                     new Header.V1(request.header().correlationId()),
                     handleDescribeTopicPartitionsRequest(describeTopicPartitionsRequest)
             );
+
+            case FetchRequestV16 fetchRequest -> new Response(
+                    new Header.V1(request.header().correlationId()),
+                    handle
+            )
 
             default -> null;
         };
@@ -149,6 +157,41 @@ public class Client implements Runnable {
                 Duration.ZERO,
                 topicResponses,
                 null
+        );
+    }
+
+    private FetchResponseV16 handleFetchRequest(FetchRequestV16 request) {
+        final var responses = new ArrayList<FetchResponseV16.Response>();
+
+        for (final var topicRequest : request.topics()) {
+            final var topicRecord = kafka.getTopic(topicRequest.topicId());
+
+            if (topicRecord == null) {
+                responses.add(new FetchResponseV16.Response(
+                        topicRequest.topicId(),
+                        List.of(
+                                new FetchResponseV16.Response.Partition(
+                                        0,
+                                        ErrorCode.UNKNOWN_TOPIC_ID,
+                                        0,
+                                        0,
+                                        0,
+                                        Collections.emptyList(),
+                                        0,
+                                        new byte[0]
+                                )
+                        )
+                ));
+
+                continue;
+            }
+        }
+
+        return new FetchResponseV16(
+                Duration.ZERO,
+                ErrorCode.NONE,
+                request.sessionId(),
+                responses
         );
     }
 }
