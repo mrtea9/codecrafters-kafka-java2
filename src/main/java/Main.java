@@ -1,4 +1,5 @@
 import client.Client;
+import kafka.Kafka;
 import protocol.ExchangeMapper;
 
 import java.net.ServerSocket;
@@ -8,7 +9,7 @@ public class Main {
     public static final int PORT = 9092;
 
     public static void main(String[] args) {
-
+        final var kafka = Kafka.load("/tmp/kraft-combined-logs/");
 
         final var exchangeMapper = new ExchangeMapper();
 
