@@ -84,8 +84,8 @@ public class Client implements Runnable {
 
             case FetchRequestV16 fetchRequest -> new Response(
                     new Header.V1(request.header().correlationId()),
-                    handle
-            )
+                    handleFetchRequest(fetchRequest)
+            );
 
             default -> null;
         };
